@@ -1,7 +1,8 @@
 #pragma once
 
-#include "esphome.h"
-#include <WiFiClient.h>
+#include "esphome/core/log.h"
+#include "esphome/core/component.h"
+#include "esphome/network/tcp_client.h"
 #include <memory>
 #include <vector>
 #include <chrono>
@@ -21,7 +22,7 @@ class ModbusTcpMaster : public PollingComponent {
   uint8_t unit_id_ = 1;
 
   // --- Persistent TCP members ---
-  std::unique_ptr<WiFiClient> client_;
+  std::unique_ptr<esphome::network::TCPClient> client_;
   bool connected_ = false;
   std::chrono::steady_clock::time_point last_activity_;
   std::chrono::milliseconds request_timeout_{5000};  // default 5s
@@ -34,7 +35,7 @@ class ModbusTcpMaster : public PollingComponent {
 
   // --- Connection management ---
   void connect_now() {
-    if (!client_) client_.reset(new WiFiClient());
+    if (!client_) client_.reset(new esphome::network::TCPClient());
     if (client_->connected()) return;
     if (!client_->connect(host_.c_str(), port_)) {
       ESP_LOGW(TAG, "Failed to connect to %s:%d", host_.c_str(), port_);
@@ -101,30 +102,27 @@ class ModbusTcpMaster : public PollingComponent {
 
   // --- Setup and update ---
   void setup() override {
-    client_.reset(new WiFiClient());
+    client_.reset(new esphome::network::TCPClient());
     connect_now();
-    // ... existing setup logic
   }
 
   void update() override {
     do_keepalive_if_needed();
-    // ... existing update logic
   }
 
-  // --- Modbus read/write methods ---
-  // Replace existing read/write logic to use send_bytes() and recv_bytes_until()
+  // --- Modbus read/write methods (placeholder) ---
   bool read_registers(uint16_t start_reg, uint16_t quantity, std::vector<uint8_t> &out) {
-    // Build Modbus TCP request, send_bytes(), recv_bytes_until()
-    return false;  // placeholder
+    return false;
   }
 
   bool write_register(uint16_t reg, int16_t value) {
-    return false;  // placeholder
+    return false;
   }
 
   bool write_registers(uint16_t start_reg, const std::vector<int16_t> &values) {
-    return false;  // placeholder
+    return false;
   }
+
 };
 
 }  // namespace modbus
