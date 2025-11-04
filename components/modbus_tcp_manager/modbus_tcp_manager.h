@@ -1,10 +1,10 @@
 #pragma once
 
 #include "esphome.h"
+#include <WiFiClient.h>
 #include <memory>
 #include <vector>
 #include <chrono>
-#include "esphome/tcp.h"
 
 namespace esphome {
 namespace modbus {
@@ -21,7 +21,7 @@ class ModbusTcpMaster : public PollingComponent {
   uint8_t unit_id_ = 1;
 
   // --- Persistent TCP members ---
-  std::unique_ptr<esphome::tcp::TCPClient> client_;
+  std::unique_ptr<WiFiClient> client_;
   bool connected_ = false;
   std::chrono::steady_clock::time_point last_activity_;
   std::chrono::milliseconds request_timeout_{5000};  // default 5s
@@ -34,7 +34,7 @@ class ModbusTcpMaster : public PollingComponent {
 
   // --- Connection management ---
   void connect_now() {
-    if (!client_) client_.reset(new esphome::tcp::TCPClient());
+    if (!client_) client_.reset(new WiFiClient());
     if (client_->connected()) return;
     if (!client_->connect(host_.c_str(), port_)) {
       ESP_LOGW(TAG, "Failed to connect to %s:%d", host_.c_str(), port_);
@@ -69,7 +69,7 @@ class ModbusTcpMaster : public PollingComponent {
       last_activity_ = now;
       return;
     }
-    try { client_->available(); } catch (...) { close_connection(); return; }
+    if (!client_->connected()) { close_connection(); return; }
     last_activity_ = now;
   }
 
@@ -101,37 +101,30 @@ class ModbusTcpMaster : public PollingComponent {
 
   // --- Setup and update ---
   void setup() override {
-    client_.reset(new esphome::tcp::TCPClient());
+    client_.reset(new WiFiClient());
     connect_now();
-    // ... existing setup logic (if any)
+    // ... existing setup logic
   }
 
   void update() override {
     do_keepalive_if_needed();
-    // ... existing update logic (if any)
+    // ... existing update logic
   }
 
   // --- Modbus read/write methods ---
   // Replace existing read/write logic to use send_bytes() and recv_bytes_until()
-  // Example: read_registers(), write_register(), write_registers()
   bool read_registers(uint16_t start_reg, uint16_t quantity, std::vector<uint8_t> &out) {
-    // Construct Modbus TCP request here
-    // send_bytes(request, request_len);
-    // recv_bytes_until(out, expected_len);
-    // Return true if successful, false on timeout/error
+    // Build Modbus TCP request, send_bytes(), recv_bytes_until()
     return false;  // placeholder
   }
 
   bool write_register(uint16_t reg, int16_t value) {
-    // Similar: build request, send_bytes(), recv_bytes_until()
-    return false;
+    return false;  // placeholder
   }
 
   bool write_registers(uint16_t start_reg, const std::vector<int16_t> &values) {
-    // Similar: build request, send_bytes(), recv_bytes_until()
-    return false;
+    return false;  // placeholder
   }
-
 };
 
 }  // namespace modbus
